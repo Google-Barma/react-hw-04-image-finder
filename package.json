@@ -1,8 +1,8 @@
 {
-  "name": "react-hw-03-image-finder",
+  "name": "react-hw-04-image-finder",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://google-barma.github.io/react-hw-03-image-finder",
+  "homepage": "https://google-barma.github.io/react-hw-04-image-finder",
   "dependencies": {
     "@testing-library/jest-dom": "^5.11.6",
     "@testing-library/react": "^11.2.2",
