@@ -1,45 +1,38 @@
-import { Component } from 'react';
+import { useState } from 'react';
 import propTypes from 'prop-types';
 import QuantityPerPage from '../QuantityPerPage/QuantityPerPage';
 
-export default class SearchBar extends Component {
-  state = {
-    query: '',
-  };
+export default function SearchBar({ onChangeQuantity, onSubmitForm }) {
+  const [query, setQuery] = useState('');
 
-  handleChangeQuery = e => this.setState({ query: e.currentTarget.value });
-
-  handleSubmitForm = e => {
+  const handleSubmitForm = e => {
     e.preventDefault();
-    const { query } = this.state;
+
     if (!query) return;
-    this.props.onSubmitForm(query);
-    this.setState({ query: '' });
+    onSubmitForm(query);
+    setQuery('');
   };
 
-  render() {
-    const { query } = this.state;
-    return (
-      <header className="Searchbar">
-        <form className="SearchForm" onSubmit={e => this.handleSubmitForm(e)}>
-          <button type="submit" className="SearchForm-button">
-            <span className="SearchForm-button-label">Search</span>
-          </button>
+  return (
+    <header className="Searchbar">
+      <form className="SearchForm" onSubmit={e => handleSubmitForm(e)}>
+        <button type="submit" className="SearchForm-button">
+          <span className="SearchForm-button-label">Search</span>
+        </button>
 
-          <input
-            className="SearchForm-input"
-            type="text"
-            autoComplete="off"
-            value={query}
-            autoFocus
-            placeholder="Search images and photos"
-            onChange={e => this.handleChangeQuery(e)}
-          />
-        </form>
-        <QuantityPerPage onChange={this.props.onChangeQuantity} />
-      </header>
-    );
-  }
+        <input
+          className="SearchForm-input"
+          type="text"
+          autoComplete="off"
+          value={query}
+          autoFocus
+          placeholder="Search images and photos"
+          onChange={e => setQuery(e.target.value)}
+        />
+      </form>
+      <QuantityPerPage onChange={onChangeQuantity} />
+    </header>
+  );
 }
 
 SearchBar.propTypes = {
