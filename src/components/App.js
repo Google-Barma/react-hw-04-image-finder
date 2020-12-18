@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 
 import SearchBar from './SearchBar/SearchBar';
 import ImageGallery from './ImageGallery/ImageGallery';
@@ -7,110 +7,81 @@ import Button from './Button/Button';
 import Modal from './Modal/Modal';
 import Loader from './Loader/Loader';
 
-export default class App extends Component {
-  state = {
-    gallery: [],
-    page: 1,
-    searchQuery: '',
-    showModal: false,
-    modalImageUrl: '',
-    isLoading: false,
-    quantity: 8,
+export default function App() {
+  const [gallery, setGallery] = useState([]);
+  const [page, setPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [modalImageUrl, setModalImageUrl] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [quantity, setQuantity] = useState(8);
+
+  useEffect(() => {
+    if (searchQuery) {
+      fetchGallery();
+    }
+  }, [searchQuery, quantity]);
+
+  useEffect(() => {
+    scrollToNextPage();
+  });
+
+  const toggleModal = () => {
+    setShowModal(!showModal);
   };
 
-  componentDidUpdate(prevProps, prevState) {
-    const { page, searchQuery, quantity } = this.state;
-
-    if (prevState.searchQuery !== searchQuery) {
-      this.fetchGallery();
-    }
-
-    if (prevState.page !== page) {
-      this.scrollToNextPage();
-    }
-
-    if (prevState.quantity !== quantity && searchQuery) {
-      this.fetchGallery();
-    }
-  }
-
-  toggleModal = () => {
-    this.setState(({ showModal }) => ({ showModal: !showModal }));
-  };
-
-  fetchGallery = () => {
-    const { page, searchQuery, quantity } = this.state;
-
-    this.setState({ isLoading: true });
+  const fetchGallery = () => {
+    setIsLoading(isLoading => !isLoading);
 
     pixabayApi
       .fetchGallery(searchQuery, page, quantity)
       .then(images => {
-        this.setState(({ gallery, page }) => ({
-          gallery: [...gallery, ...images],
-          page: page + 1,
-        }));
+        setGallery(gallery => [...gallery, ...images]);
+        setPage(page => page + 1);
       })
-      .finally(() => this.setState({ isLoading: false }));
+      .finally(() => setIsLoading(isLoading => !isLoading));
   };
 
-  handleLoadMoreBtn = () => {
-    this.fetchGallery();
-
-    this.setState(({ page }) => ({
-      page: page + 1,
-    }));
-  };
-
-  handleOpenModal = e => {
+  const handleOpenModal = e => {
     const url = e.target.dataset.url;
 
-    this.toggleModal();
-    this.setState({ modalImageUrl: url });
+    toggleModal();
+    setModalImageUrl(url);
   };
 
-  onChangeQuery = query => {
-    this.setState({
-      searchQuery: query,
-      gallery: [],
-      page: 1,
-    });
+  const onChangeQuery = query => {
+    setSearchQuery(query);
+    setGallery([]);
+    setPage(1);
   };
 
-  onChangeQuantity = value => this.setState({ quantity: value });
+  const onChangeQuantity = value => setQuantity(value);
 
-  scrollToNextPage = () => {
+  const scrollToNextPage = () => {
     window.scrollTo({
       top: document.documentElement.scrollHeight,
       behavior: 'smooth',
     });
   };
 
-  render() {
-    const { gallery, showModal, modalImageUrl, isLoading } = this.state;
+  return (
+    <>
+      <SearchBar
+        onSubmitForm={onChangeQuery}
+        onChangeQuantity={onChangeQuantity}
+      />
+      <main>
+        <ImageGallery galleryPhotos={gallery} onOpenModal={handleOpenModal} />
+        <Loader isLoading={isLoading} />
 
-    return (
-      <>
-        <SearchBar
-          onSubmitForm={this.onChangeQuery}
-          onChangeQuantity={this.onChangeQuantity}
-        />
-        <main>
-          <ImageGallery
-            galleryPhotos={gallery}
-            onOpenModal={this.handleOpenModal}
-          />
-          <Loader isLoading={isLoading} />
+        {gallery.length > 0 && !isLoading && (
+          <Button onLoadMore={fetchGallery} />
+        )}
 
-          {gallery.length > 0 && !isLoading && (
-            <Button onLoadMore={this.fetchGallery} />
-          )}
-
-          {showModal && (
-            <Modal imageUrl={modalImageUrl} onCloseModal={this.toggleModal} />
-          )}
-        </main>
-      </>
-    );
-  }
+        {showModal && (
+          <Modal imageUrl={modalImageUrl} onCloseModal={toggleModal} />
+        )}
+      </main>
+    </>
+  );
 }
